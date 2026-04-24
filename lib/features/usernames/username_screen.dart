@@ -152,7 +152,7 @@ class _UsernameScreenState extends State<UsernameScreen> {
                                   color: isSelected
                                       ? AppColors.primary
                                       : AppColors.primary
-                                          .withValues(alpha: 0.2),
+                                      .withValues(alpha: 0.2),
                                 ),
                               ),
                               child: Text(
@@ -221,80 +221,80 @@ class _UsernameScreenState extends State<UsernameScreen> {
                           onPressed: provider.isGenerating
                               ? null
                               : () async {
-                                  if (keywordController.text.trim().isEmpty) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                            "Masukkan kata kunci terlebih dahulu"),
-                                        backgroundColor: Colors.redAccent,
-                                        behavior: SnackBarBehavior.floating,
-                                      ),
-                                    );
-                                    return;
-                                  }
-                                  final token =
-                                      context.read<AuthProvider>().token!;
-                                  final result =
-                                      await provider.generate(
-                                    token,
-                                    keywordController.text.trim(),
-                                    selectedStyle,
-                                    selectedTotal,
-                                  );
+                            if (keywordController.text.trim().isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                      "Masukkan kata kunci terlebih dahulu"),
+                                  backgroundColor: Colors.redAccent,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                              return;
+                            }
+                            final token =
+                            context.read<AuthProvider>().token!;
+                            final result =
+                            await provider.generate(
+                              token,
+                              keywordController.text.trim(),
+                              selectedStyle,
+                              selectedTotal,
+                            );
 
-                                  if (!sheetContext.mounted) return;
-                                  Navigator.pop(sheetContext);
+                            if (!sheetContext.mounted) return;
+                            Navigator.pop(sheetContext);
 
-                                  if (result != null && context.mounted) {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => UsernameDetailScreen(
-                                            item: result),
-                                      ),
-                                    );
-                                  } else if (provider.errorMessage != null &&
-                                      context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content:
-                                            Text(provider.errorMessage!),
-                                        backgroundColor: Colors.redAccent,
-                                        behavior: SnackBarBehavior.floating,
-                                      ),
-                                    );
-                                  }
-                                },
+                            if (result != null && context.mounted) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => UsernameDetailScreen(
+                                      item: result),
+                                ),
+                              );
+                            } else if (provider.errorMessage != null &&
+                                context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content:
+                                  Text(provider.errorMessage!),
+                                  backgroundColor: Colors.redAccent,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          },
                           child: provider.isGenerating
                               ? const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    SizedBox(
-                                      height: 18,
-                                      width: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    SizedBox(width: 10),
-                                    Text("AI sedang bekerja..."),
-                                  ],
-                                )
-                              : const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.auto_awesome, size: 18),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      "Generate Sekarang",
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                height: 18,
+                                width: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
                                 ),
+                              ),
+                              SizedBox(width: 10),
+                              Text("AI sedang bekerja..."),
+                            ],
+                          )
+                              : const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.auto_awesome, size: 18),
+                              SizedBox(width: 8),
+                              Text(
+                                "Generate Sekarang",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
@@ -325,7 +325,7 @@ class _UsernameScreenState extends State<UsernameScreen> {
           ),
           ElevatedButton(
             style:
-                ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
             onPressed: () {
               provider.delete(auth.token!, item.id);
               Navigator.pop(context);
@@ -405,9 +405,22 @@ class _UsernameScreenState extends State<UsernameScreen> {
                   );
                 }
 
-                // Empty state
+                // Error or empty state
                 if (provider.history.isEmpty && !provider.isLoading) {
+                  if (provider.errorMessage != null) {
+                    return _buildErrorState(provider.errorMessage!);
+                  }
                   return _buildEmptyState();
+                }
+
+                // Initial loading state (no history yet)
+                if (provider.history.isEmpty && provider.isLoading) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 60),
+                    child: Center(
+                      child: CircularProgressIndicator(color: AppColors.primary),
+                    ),
+                  );
                 }
 
                 final itemIndex = index - 1;
@@ -462,7 +475,8 @@ class _UsernameScreenState extends State<UsernameScreen> {
   }
 
   int _itemCount(UsernameProvider provider) {
-    if (provider.history.isEmpty && !provider.isLoading) return 2;
+    if (provider.history.isEmpty && !provider.isLoading) return 2; // welcome + empty state
+    if (provider.history.isEmpty && provider.isLoading) return 2;  // welcome + loading spinner
     return 1 + provider.history.length + (provider.isLoading ? 1 : 0);
   }
 
@@ -513,7 +527,7 @@ class _UsernameScreenState extends State<UsernameScreen> {
                 Text(
                   '$count riwayat generate • tarik untuk refresh',
                   style:
-                      const TextStyle(color: Colors.white70, fontSize: 12),
+                  const TextStyle(color: Colors.white70, fontSize: 12),
                 ),
               ],
             ),
@@ -561,6 +575,57 @@ class _UsernameScreenState extends State<UsernameScreen> {
     );
   }
 
+  Widget _buildErrorState(String message) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 48),
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkCard
+            : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.cloud_off_rounded,
+            size: 72,
+            color: Colors.redAccent.withValues(alpha: 0.6),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            "Gagal memuat data",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.redAccent,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.grey, fontSize: 13),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            onPressed: _refresh,
+            icon: const Icon(Icons.refresh_rounded, size: 18),
+            label: const Text("Coba Lagi"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildHistoryCard(UsernameModel item, int index, bool isDark) {
     final styleLabel = ApiConstants.styleLabels[item.style] ?? item.style;
 
@@ -580,12 +645,12 @@ class _UsernameScreenState extends State<UsernameScreen> {
           boxShadow: isDark
               ? null
               : [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           children: [

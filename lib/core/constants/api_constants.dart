@@ -1,6 +1,6 @@
 class ApiConstants {
   // Ganti dengan URL backend kamu
-  static const String baseUrl = "https://pam-2026-p9-ifs23050-be.11s23050.online:8080/";
+  static const String baseUrl = "https://pam-2026-p9-ifs23050-be.11s23050.online:8080";
 
   static const String login = "$baseUrl/auth/login";
   static const String me = "$baseUrl/auth/me";

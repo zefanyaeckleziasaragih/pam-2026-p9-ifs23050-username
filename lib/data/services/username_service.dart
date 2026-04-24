@@ -3,26 +3,31 @@ import 'package:http/http.dart' as http;
 import '../../core/constants/api_constants.dart';
 
 class UsernameService {
+  static const _timeout = Duration(seconds: 15);
+
   static Future<Map<String, dynamic>> getHistory(
       String token, int page) async {
-    final response = await http.get(
+    final response = await http
+        .get(
       Uri.parse("${ApiConstants.usernames}?page=$page&per_page=10"),
       headers: {
         "Authorization": "Bearer $token",
         "Content-Type": "application/json",
       },
-    );
+    )
+        .timeout(_timeout, onTimeout: () => throw Exception("Koneksi timeout, cek server backend"));
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      throw Exception("Failed to load history");
+      throw Exception("Gagal memuat riwayat (${response.statusCode})");
     }
   }
 
   static Future<Map<String, dynamic>> generate(
       String token, String keyword, String style, int total) async {
-    final response = await http.post(
+    final response = await http
+        .post(
       Uri.parse(ApiConstants.generateUsername),
       headers: {
         "Authorization": "Bearer $token",
@@ -33,7 +38,8 @@ class UsernameService {
         "style": style,
         "total": total,
       }),
-    );
+    )
+        .timeout(const Duration(seconds: 60), onTimeout: () => throw Exception("Generate timeout, coba lagi"));
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
@@ -44,13 +50,15 @@ class UsernameService {
   }
 
   static Future<void> delete(String token, int id) async {
-    final response = await http.delete(
+    final response = await http
+        .delete(
       Uri.parse("${ApiConstants.usernames}/$id"),
       headers: {"Authorization": "Bearer $token"},
-    );
+    )
+        .timeout(_timeout, onTimeout: () => throw Exception("Koneksi timeout"));
 
     if (response.statusCode != 200) {
-      throw Exception("Failed to delete");
+      throw Exception("Gagal menghapus");
     }
   }
 }
